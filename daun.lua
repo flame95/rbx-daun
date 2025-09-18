@@ -51,7 +51,31 @@ local function climbOnce(startIndex)
         local cp = checkpoints[i]
         teleportTo(cp.pos)
         print("[AutoClimb] Teleport ke " .. cp.name)
-        task.wait(1.2) -- kasih jeda biar UI update
+
+        -- tunggu sampai UI checkpoint update
+        local label = player.PlayerGui.CheckpointHUD.CheckpointContainer.CheckpointLabel
+        local targetIndex = i
+        local success = false
+        local startTime = tick()
+
+        while tick() - startTime < 90 do -- max 90 detik (1.5 menit)
+            local cpNum = getCheckpointFromUI()
+            local currentIndex = math.clamp(cpNum + 1, 1, #checkpoints)
+            if currentIndex >= targetIndex then
+                success = true
+                break
+            end
+            task.wait(1) -- cek tiap 1 detik
+        end
+
+        if success then
+            print("[AutoClimb] CP UI terupdate: " .. checkpoints[i].name)
+            lastCheckpointIndex = i
+            player:SetAttribute("LastCP", lastCheckpointIndex)
+            updateStatus()
+        else
+            warn("[AutoClimb] Timeout tunggu CP UI, lanjut ke berikutnya...")
+        end
     end
     print("[AutoClimb] Selesai.")
 end
