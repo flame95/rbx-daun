@@ -1,5 +1,5 @@
 -- Auto Summit (One-Time & Looping) dengan integrasi Checkpoint UI
--- Updated by ChatGPT
+-- Fixed & Updated by ChatGPT
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -22,6 +22,21 @@ local checkpoints = {
     {name = "CP 4",     pos = Vector3.new(-1701.05, 815.79, -1399.99)},
     {name = "Summit",   pos = Vector3.new(-3234.00, 1713.83, -2584.00)},
 }
+
+-- === CP UI Integration (dipindah ke atas biar bisa dipakai climbOnce) ===
+local function getCheckpointFromUI()
+    local label = player:WaitForChild("PlayerGui")
+        :WaitForChild("CheckpointHUD")
+        :WaitForChild("CheckpointContainer")
+        :WaitForChild("CheckpointLabel")
+
+    if label and label:IsA("TextLabel") then
+        local plainText = label.Text:gsub("<.->", "") -- hapus <font>
+        local cpNum = tonumber(plainText:match("(%d+)"))
+        return cpNum or 0 -- 0 = Basecamp
+    end
+    return 0
+end
 
 -- state CP terakhir (default Basecamp)
 local lastCheckpointIndex = 1 
@@ -53,19 +68,17 @@ local function climbOnce(startIndex)
         print("[AutoClimb] Teleport ke " .. cp.name)
 
         -- tunggu sampai UI checkpoint update
-        local label = player.PlayerGui.CheckpointHUD.CheckpointContainer.CheckpointLabel
-        local targetIndex = i
         local success = false
         local startTime = tick()
+        local targetUI = i - 1 -- Basecamp=0, CP1=1 → table index = UI+1
 
-        while tick() - startTime < 90 do -- max 90 detik (1.5 menit)
+        while tick() - startTime < 90 do -- max 90 detik
             local cpNum = getCheckpointFromUI()
-            local currentIndex = math.clamp(cpNum + 1, 1, #checkpoints)
-            if currentIndex >= targetIndex then
+            if cpNum == targetUI then
                 success = true
                 break
             end
-            task.wait(1) -- cek tiap 1 detik
+            task.wait(1)
         end
 
         if success then
@@ -74,7 +87,8 @@ local function climbOnce(startIndex)
             player:SetAttribute("LastCP", lastCheckpointIndex)
             updateStatus()
         else
-            warn("[AutoClimb] Timeout tunggu CP UI, lanjut ke berikutnya...")
+            warn("[AutoClimb] Timeout tunggu CP UI, berhenti climb.")
+            break
         end
     end
     print("[AutoClimb] Selesai.")
@@ -164,26 +178,11 @@ loopBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- === CP UI Integration ===
-local function getCheckpointFromUI()
-    local label = player:WaitForChild("PlayerGui")
-        :WaitForChild("CheckpointHUD")
-        :WaitForChild("CheckpointContainer")
-        :WaitForChild("CheckpointLabel")
-
-    if label and label:IsA("TextLabel") then
-        local plainText = label.Text:gsub("<.->", "") -- hapus <font>
-        local cpNum = plainText:match("(%d+)")
-        return tonumber(cpNum) or 0
-    end
-    return 0
-end
-
+-- === CP UI Watcher ===
 local function setupCheckpointWatcher()
     local label = player.PlayerGui.CheckpointHUD.CheckpointContainer.CheckpointLabel
     label:GetPropertyChangedSignal("Text"):Connect(function()
         local cpNum = getCheckpointFromUI()
-        -- Basecamp = 0, CP1 = 1, dst. Jadi +1 buat index table.
         lastCheckpointIndex = math.clamp(cpNum + 1, 1, #checkpoints)
         player:SetAttribute("LastCP", lastCheckpointIndex)
         updateStatus()
