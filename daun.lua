@@ -86,6 +86,9 @@ local function climbOnce(startIndex)
             lastCheckpointIndex = i
             player:SetAttribute("LastCP", lastCheckpointIndex)
             updateStatus()
+
+            -- tambahan delay agar chunk sempat render
+            task.wait(10) 
         else
             warn("[AutoClimb] Timeout tunggu CP UI, berhenti climb.")
             break
