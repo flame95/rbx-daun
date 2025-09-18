@@ -1,5 +1,5 @@
 -- Auto Summit (One-Time & Looping) dengan integrasi Checkpoint UI
--- by ChatGPT (updated)
+-- Updated by ChatGPT
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -13,17 +13,18 @@ local function getRoot()
 end
 
 -- daftar checkpoint (urut sesuai CP in-game)
+-- index 1 = Basecamp, index 2 = CP1, dst.
 local checkpoints = {
-    {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)}, -- index 1
+    {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)}, 
     {name = "CP 1",     pos = Vector3.new(-621.72, 249.48, -383.89)},
     {name = "CP 2",     pos = Vector3.new(-1203.19, 260.84, -487.08)},
     {name = "CP 3",     pos = Vector3.new(-1399.29, 577.59, -949.93)},
     {name = "CP 4",     pos = Vector3.new(-1701.05, 815.79, -1399.99)},
-    {name = "Summit",   pos = Vector3.new(-3234.00, 1713.83, -2584.00)}, -- index terakhir
+    {name = "Summit",   pos = Vector3.new(-3234.00, 1713.83, -2584.00)},
 }
 
--- state CP terakhir
-local lastCheckpointIndex = 1 -- default Basecamp
+-- state CP terakhir (default Basecamp)
+local lastCheckpointIndex = 1 
 
 -- GUI indikator
 local statusLabel
@@ -50,21 +51,23 @@ local function climbOnce(startIndex)
         local cp = checkpoints[i]
         teleportTo(cp.pos)
         print("[AutoClimb] Teleport ke " .. cp.name)
-        task.wait(1.2) -- tunggu biar UI checkpoint update
+        task.wait(1.2) -- kasih jeda biar UI update
     end
     print("[AutoClimb] Selesai.")
 end
 
--- loop climb
+-- loop climb (selesai summit -> ulang Basecamp)
 local loopRunning = false
 local function loopClimb()
     loopRunning = true
     while loopRunning do
         climbOnce(lastCheckpointIndex)
-        print("[LoopClimb] Restart dari Basecamp...")
-        lastCheckpointIndex = 1
-        player:SetAttribute("LastCP", 1)
-        updateStatus()
+        if lastCheckpointIndex >= #checkpoints then
+            print("[LoopClimb] Sampai Summit, restart dari Basecamp...")
+            lastCheckpointIndex = 1
+            player:SetAttribute("LastCP", 1)
+            updateStatus()
+        end
         task.wait(2)
     end
 end
@@ -146,7 +149,7 @@ local function getCheckpointFromUI()
 
     if label and label:IsA("TextLabel") then
         local plainText = label.Text:gsub("<.->", "") -- hapus <font>
-        local cpNum = plainText:match("Posisi CP%s*:%s*(%d+)")
+        local cpNum = plainText:match("(%d+)")
         return tonumber(cpNum) or 0
     end
     return 0
@@ -156,7 +159,7 @@ local function setupCheckpointWatcher()
     local label = player.PlayerGui.CheckpointHUD.CheckpointContainer.CheckpointLabel
     label:GetPropertyChangedSignal("Text"):Connect(function()
         local cpNum = getCheckpointFromUI()
-        -- index 1 = Basecamp, index 2 = CP1, dst.
+        -- Basecamp = 0, CP1 = 1, dst. Jadi +1 buat index table.
         lastCheckpointIndex = math.clamp(cpNum + 1, 1, #checkpoints)
         player:SetAttribute("LastCP", lastCheckpointIndex)
         updateStatus()
