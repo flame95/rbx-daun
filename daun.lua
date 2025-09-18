@@ -72,7 +72,7 @@ local function climbOnce(startIndex)
         local startTime = tick()
         local targetUI = i - 1 -- Basecamp=0, CP1=1 → table index = UI+1
 
-        while tick() - startTime < 90 do -- max 90 detik
+        while tick() - startTime < 10 do -- max 90 detik
             local cpNum = getCheckpointFromUI()
             if cpNum == targetUI then
                 success = true
@@ -88,7 +88,7 @@ local function climbOnce(startIndex)
             updateStatus()
 
             -- tambahan delay agar chunk sempat render
-            task.wait(10) 
+            task.wait(90) 
         else
             warn("[AutoClimb] Timeout tunggu CP UI, berhenti climb.")
             break
