@@ -1,5 +1,5 @@
 -- Auto Summit (One-Time & Looping) dengan integrasi Checkpoint UI
--- by ChatGPT
+-- by ChatGPT (updated)
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -12,14 +12,14 @@ local function getRoot()
         or char:FindFirstChild("UpperTorso")
 end
 
--- daftar checkpoint
+-- daftar checkpoint (urut sesuai CP in-game)
 local checkpoints = {
-    {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)},
+    {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)}, -- index 1
     {name = "CP 1",     pos = Vector3.new(-621.72, 249.48, -383.89)},
     {name = "CP 2",     pos = Vector3.new(-1203.19, 260.84, -487.08)},
     {name = "CP 3",     pos = Vector3.new(-1399.29, 577.59, -949.93)},
     {name = "CP 4",     pos = Vector3.new(-1701.05, 815.79, -1399.99)},
-    {name = "Summit",   pos = Vector3.new(-3234.00, 1713.83, -2584.00)},
+    {name = "Summit",   pos = Vector3.new(-3234.00, 1713.83, -2584.00)}, -- index terakhir
 }
 
 -- state CP terakhir
@@ -50,9 +50,7 @@ local function climbOnce(startIndex)
         local cp = checkpoints[i]
         teleportTo(cp.pos)
         print("[AutoClimb] Teleport ke " .. cp.name)
-
-        -- cukup tunggu sebentar biar checkpoint UI update
-        task.wait(1.2)
+        task.wait(1.2) -- tunggu biar UI checkpoint update
     end
     print("[AutoClimb] Selesai.")
 end
@@ -147,11 +145,9 @@ local function getCheckpointFromUI()
         :WaitForChild("CheckpointLabel")
 
     if label and label:IsA("TextLabel") then
-        local plainText = label.Text:gsub("<.->", "")
-        local cpNum = tonumber(plainText)
-        if cpNum then
-            return cpNum
-        end
+        local plainText = label.Text:gsub("<.->", "") -- hapus <font>
+        local cpNum = plainText:match("Posisi CP%s*:%s*(%d+)")
+        return tonumber(cpNum) or 0
     end
     return 0
 end
@@ -160,6 +156,7 @@ local function setupCheckpointWatcher()
     local label = player.PlayerGui.CheckpointHUD.CheckpointContainer.CheckpointLabel
     label:GetPropertyChangedSignal("Text"):Connect(function()
         local cpNum = getCheckpointFromUI()
+        -- index 1 = Basecamp, index 2 = CP1, dst.
         lastCheckpointIndex = math.clamp(cpNum + 1, 1, #checkpoints)
         player:SetAttribute("LastCP", lastCheckpointIndex)
         updateStatus()
