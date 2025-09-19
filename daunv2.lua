@@ -1,5 +1,5 @@
--- Gabungan dari Skrip Anti-Cheat dan Auto-Summit
--- Skrip ini menggabungkan fitur anti-cheat, teleportasi otomatis, dan fitur tambahan lainnya.
+-- Gabungan dari Skrip Auto-Summit dan fitur tambahan.
+-- Skrip ini menggabungkan fitur teleportasi otomatis, dan fitur tambahan lainnya.
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -202,7 +202,6 @@ task.spawn(function()
             if SpeedHack then
                 char.Humanoid.WalkSpeed = WalkSpeed
             else
-                -- Mengembalikan kecepatan normal saat SpeedHack dimatikan
                 char.Humanoid.WalkSpeed = 16 
             end
         end
@@ -217,15 +216,14 @@ local lastHumanoid = nil
 
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
+    lastHumanoid = hum
     hum.StateChanged:Connect(function(_, new)
         if new == Enum.HumanoidStateType.Freefall and AntiFallDamage then
             hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
         end
     end)
-    lastHumanoid = hum
 end)
 
--- Loop baru untuk memastikan anti-fall damage selalu aktif
 task.spawn(function()
     while task.wait(0.1) do
         if AntiFallDamage and lastHumanoid and lastHumanoid.Parent and lastHumanoid.Health > 0 then
@@ -382,7 +380,6 @@ fallBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-
 -- === CP UI Watcher ===
 local function setupCheckpointWatcher()
     local label = player.PlayerGui.CheckpointHUD.CheckpointContainer.CheckpointLabel
@@ -395,7 +392,7 @@ local function setupCheckpointWatcher()
     end)
 end
 
--- Init
+-- init
 task.spawn(function()
     local cpNum = getCheckpointFromUI()
     lastCheckpointIndex = math.clamp(cpNum + 1, 1, #checkpoints)
