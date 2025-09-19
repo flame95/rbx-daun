@@ -5,6 +5,27 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 -- ====================================
+-- ANTI-CHEAT DESTROYER
+-- ====================================
+-- Menghancurkan LocalScript anti-cheat yang ditemukan
+local function antiCheatDestroyer()
+    for _, v in ipairs(game:GetDescendants()) do
+        if v:IsA("LocalScript") and v.Name:lower():find("anticheat") then
+            warn("[ANTI-AC] Destroyed: " .. v.Name)
+            v:Destroy()
+        end
+    end
+    print("[ANTI-AC] Protection Enabled!")
+end
+
+-- Jalankan setiap beberapa detik untuk perlindungan terus-menerus
+task.spawn(function()
+    while task.wait(5) do
+        antiCheatDestroyer()
+    end
+end)
+
+-- ====================================
 -- AUTO SUMMIT & EXTRA FEATURES
 -- ====================================
 -- Cari root part
@@ -159,7 +180,7 @@ task.spawn(function()
             if target then
                 local root = getRoot()
                 if root then
-                    root.Cframe = CFrame.new(target + Vector3.new(0, 5, 0))
+                    root.CFrame = CFrame.new(target + Vector3.new(0, 5, 0))
                 end
             else
                 AutoWalk = false
@@ -169,27 +190,44 @@ task.spawn(function()
 end)
 
 -- ====================================
--- SPEEDHACK + ANTI FALL DAMAGE
+-- SPEEDHACK
 -- ====================================
 local SpeedHack = false
 local WalkSpeed = 32
 
+task.spawn(function()
+    while task.wait(0.5) do
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            if SpeedHack then
+                char.Humanoid.WalkSpeed = WalkSpeed
+            else
+                char.Humanoid.WalkSpeed = 16
+            end
+        end
+    end
+end)
+
+---
+## ANTI FALL DAMAGE
+---
+local AntiFallDamage = false
+local lastHumanoid = nil
+
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
+    lastHumanoid = hum
     hum.StateChanged:Connect(function(_, new)
-        if new == Enum.HumanoidStateType.Freefall and SpeedHack then
+        if new == Enum.HumanoidStateType.Freefall and AntiFallDamage then
             hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
         end
     end)
 end)
 
 task.spawn(function()
-    while task.wait(0.5) do
-        if SpeedHack then
-            local char = player.Character
-            if char and char:FindFirstChild("Humanoid") then
-                char.Humanoid.WalkSpeed = WalkSpeed
-            end
+    while task.wait(0.1) do
+        if AntiFallDamage and lastHumanoid and lastHumanoid.Parent and lastHumanoid.Health > 0 then
+            lastHumanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
         end
     end
 end)
@@ -201,7 +239,7 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 240, 0, 300)
+frame.Size = UDim2.new(0, 240, 0, 335)
 frame.Position = UDim2.new(0, 20, 0, 120)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BackgroundTransparency = 0.2
@@ -319,6 +357,26 @@ speedBtn.MouseButton1Click:Connect(function()
     else
         speedBtn.Text = "Toggle SpeedHack (OFF)"
         speedBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+    end
+end)
+
+-- tombol Anti Fall Damage
+local fallBtn = Instance.new("TextButton", frame)
+fallBtn.Size = UDim2.new(1, -20, 0, 30)
+fallBtn.Position = UDim2.new(0, 10, 0, 255)
+fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
+fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+fallBtn.TextColor3 = Color3.new(1,1,1)
+fallBtn.Font = Enum.Font.SourceSansBold
+fallBtn.TextSize = 16
+fallBtn.MouseButton1Click:Connect(function()
+    AntiFallDamage = not AntiFallDamage
+    if AntiFallDamage then
+        fallBtn.Text = "Toggle Anti Fall Damage (ON)"
+        fallBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
+    else
+        fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
+        fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
     end
 end)
 
