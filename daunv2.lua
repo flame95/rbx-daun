@@ -264,6 +264,66 @@ loopBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- tombol AutoJump
+local jumpBtn = Instance.new("TextButton", frame)
+jumpBtn.Size = UDim2.new(1, -20, 0, 30)
+jumpBtn.Position = UDim2.new(0, 10, 0, 150)
+jumpBtn.Text = "Toggle AutoJump (OFF)"
+jumpBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+jumpBtn.TextColor3 = Color3.new(1,1,1)
+jumpBtn.Font = Enum.Font.SourceSansBold
+jumpBtn.TextSize = 16
+jumpBtn.MouseButton1Click:Connect(function()
+    AutoJump = not AutoJump
+    if AutoJump then
+        jumpBtn.Text = "Toggle AutoJump (ON)"
+        jumpBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
+    else
+        jumpBtn.Text = "Toggle AutoJump (OFF)"
+        jumpBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+    end
+end)
+
+-- tombol AutoWalk
+local walkBtn = Instance.new("TextButton", frame)
+walkBtn.Size = UDim2.new(1, -20, 0, 30)
+walkBtn.Position = UDim2.new(0, 10, 0, 185)
+walkBtn.Text = "Toggle AutoWalk (OFF)"
+walkBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+walkBtn.TextColor3 = Color3.new(1,1,1)
+walkBtn.Font = Enum.Font.SourceSansBold
+walkBtn.TextSize = 16
+walkBtn.MouseButton1Click:Connect(function()
+    AutoWalk = not AutoWalk
+    if AutoWalk then
+        walkBtn.Text = "Toggle AutoWalk (ON)"
+        walkBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
+    else
+        walkBtn.Text = "Toggle AutoWalk (OFF)"
+        walkBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+    end
+end)
+
+-- tombol SpeedHack
+local speedBtn = Instance.new("TextButton", frame)
+speedBtn.Size = UDim2.new(1, -20, 0, 30)
+speedBtn.Position = UDim2.new(0, 10, 0, 220)
+speedBtn.Text = "Toggle SpeedHack (OFF)"
+speedBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+speedBtn.TextColor3 = Color3.new(1,1,1)
+speedBtn.Font = Enum.Font.SourceSansBold
+speedBtn.TextSize = 16
+speedBtn.MouseButton1Click:Connect(function()
+    SpeedHack = not SpeedHack
+    if SpeedHack then
+        speedBtn.Text = "Toggle SpeedHack (ON)"
+        speedBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
+    else
+        speedBtn.Text = "Toggle SpeedHack (OFF)"
+        speedBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+    end
+end)
+
 -- === CP UI Watcher ===
 local function setupCheckpointWatcher()
     local label = player.PlayerGui.CheckpointHUD.CheckpointContainer.CheckpointLabel
