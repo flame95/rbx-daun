@@ -1,9 +1,9 @@
--- Auto Summit + Extra Features GUI (Fixed & Updated)
+-- Auto Summit + Extra Features GUI (Updated with AutoJump fix, SpeedHack stealth, AntiFall, R6/R15 support)
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- cari root part
+-- cari root part (support R6 & R15)
 local function getRoot()
     local char = player.Character or player.CharacterAdded:Wait()
     return char:FindFirstChild("HumanoidRootPart") 
@@ -110,24 +110,23 @@ local function loopClimb()
 end
 
 -- ====================================
--- AUTO JUMP EDGE
+-- AUTO JUMP EDGE (fixed, works R6/R15)
 -- ====================================
 local AutoJump = false
 task.spawn(function()
     while task.wait(0.05) do
         if AutoJump then
             local root = getRoot()
-            if root and root.Velocity.Y < -30 then
-                game:GetService("VirtualInputManager"):SendKeyEvent(true, "Space", false, game)
-                task.wait(0.02)
-                game:GetService("VirtualInputManager"):SendKeyEvent(false, "Space", false, game)
+            local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+            if root and hum and root.Velocity.Y < -15 then
+                hum.Jump = true
             end
         end
     end
 end)
 
 -- ====================================
--- AUTO WALK
+-- AUTO WALK (dummy example, bisa custom)
 -- ====================================
 local AutoWalk = false
 local Checkpoints = {
@@ -165,29 +164,36 @@ task.spawn(function()
 end)
 
 -- ====================================
--- SPEEDHACK + ANTI FALL DAMAGE
+-- SPEEDHACK (stealth via CFrame move)
 -- ====================================
 local SpeedHack = false
-local WalkSpeed = 32 
+local SpeedMultiplier = 2 
+
+task.spawn(function()
+    while task.wait(0.05) do
+        if SpeedHack then
+            local char = player.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            local root = getRoot()
+            if root and hum and hum.MoveDirection.Magnitude > 0 then
+                root.CFrame = root.CFrame + hum.MoveDirection * SpeedMultiplier
+            end
+        end
+    end
+end)
+
+-- ====================================
+-- ANTI FALL DAMAGE (toggle)
+-- ====================================
+local AntiFall = false
 
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
     hum.StateChanged:Connect(function(_, new)
-        if new == Enum.HumanoidStateType.Freefall and SpeedHack then
-            hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
+        if AntiFall and new == Enum.HumanoidStateType.Freefall then
+            hum:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end)
-end)
-
-task.spawn(function()
-    while task.wait(0.5) do
-        if SpeedHack then
-            local char = player.Character
-            if char and char:FindFirstChild("Humanoid") then
-                char.Humanoid.WalkSpeed = WalkSpeed
-            end
-        end
-    end
 end)
 
 -- === GUI ===
@@ -197,7 +203,7 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 240, 0, 380)
+frame.Size = UDim2.new(0, 240, 0, 400)
 frame.Position = UDim2.new(0, 20, 0, 120)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BackgroundTransparency = 0.2
@@ -315,6 +321,26 @@ speedBtn.MouseButton1Click:Connect(function()
     else
         speedBtn.Text = "Toggle SpeedHack (OFF)"
         speedBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+    end
+end)
+
+-- tombol AntiFall
+local fallBtn = Instance.new("TextButton", frame)
+fallBtn.Size = UDim2.new(1, -20, 0, 30)
+fallBtn.Position = UDim2.new(0, 10, 0, 255)
+fallBtn.Text = "Toggle AntiFall (OFF)"
+fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+fallBtn.TextColor3 = Color3.new(1,1,1)
+fallBtn.Font = Enum.Font.SourceSansBold
+fallBtn.TextSize = 16
+fallBtn.MouseButton1Click:Connect(function()
+    AntiFall = not AntiFall
+    if AntiFall then
+        fallBtn.Text = "Toggle AntiFall (ON)"
+        fallBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
+    else
+        fallBtn.Text = "Toggle AntiFall (OFF)"
+        fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
     end
 end)
 
