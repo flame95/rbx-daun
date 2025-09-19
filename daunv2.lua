@@ -156,11 +156,11 @@ end)
 -- ====================================
 local AutoWalk = false
 local Checkpoints = {
-    [0] = Vector3.new(-7.21, 13.11, -9.01),
-    [1] = Vector3.new(-621.72, 249.48, -383.89),
-    [2] = Vector3.new(-1203.19, 260.84, -487.08),
-    [3] = Vector3.new(-1399.29, 577.59, -949.93),
-    [4] = Vector3.new(-1701.05, 815.79, -1399.99),
+    [0] = Vector3.new(0,0,0),
+    [1] = Vector3.new(10,5,0),
+    [2] = Vector3.new(50,15,0),
+    [3] = Vector3.new(120,30,0),
+    [4] = Vector3.new(200,60,0),
 }
 
 local function getCurrentCP()
@@ -180,7 +180,7 @@ task.spawn(function()
             if target then
                 local root = getRoot()
                 if root then
-                    root.CFrame = CFrame.new(target + Vector3.new(0, 5, 0))
+                    root.Cframe = CFrame.new(target + Vector3.new(0, 5, 0))
                 end
             else
                 AutoWalk = false
@@ -190,44 +190,27 @@ task.spawn(function()
 end)
 
 -- ====================================
--- SPEEDHACK
+-- SPEEDHACK + ANTI FALL DAMAGE
 -- ====================================
 local SpeedHack = false
 local WalkSpeed = 32
 
-task.spawn(function()
-    while task.wait(0.5) do
-        local char = player.Character
-        if char and char:FindFirstChild("Humanoid") then
-            if SpeedHack then
-                char.Humanoid.WalkSpeed = WalkSpeed
-            else
-                char.Humanoid.WalkSpeed = 16
-            end
-        end
-    end
-end)
-
----
-## ANTI FALL DAMAGE
----
-local AntiFallDamage = false
-local lastHumanoid = nil
-
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
-    lastHumanoid = hum
     hum.StateChanged:Connect(function(_, new)
-        if new == Enum.HumanoidStateType.Freefall and AntiFallDamage then
+        if new == Enum.HumanoidStateType.Freefall and SpeedHack then
             hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
         end
     end)
 end)
 
 task.spawn(function()
-    while task.wait(0.1) do
-        if AntiFallDamage and lastHumanoid and lastHumanoid.Parent and lastHumanoid.Health > 0 then
-            lastHumanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
+    while task.wait(0.5) do
+        if SpeedHack then
+            local char = player.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.WalkSpeed = WalkSpeed
+            end
         end
     end
 end)
@@ -239,7 +222,7 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 240, 0, 335)
+frame.Size = UDim2.new(0, 240, 0, 300)
 frame.Position = UDim2.new(0, 20, 0, 120)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BackgroundTransparency = 0.2
@@ -357,26 +340,6 @@ speedBtn.MouseButton1Click:Connect(function()
     else
         speedBtn.Text = "Toggle SpeedHack (OFF)"
         speedBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
-    end
-end)
-
--- tombol Anti Fall Damage
-local fallBtn = Instance.new("TextButton", frame)
-fallBtn.Size = UDim2.new(1, -20, 0, 30)
-fallBtn.Position = UDim2.new(0, 10, 0, 255)
-fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
-fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
-fallBtn.TextColor3 = Color3.new(1,1,1)
-fallBtn.Font = Enum.Font.SourceSansBold
-fallBtn.TextSize = 16
-fallBtn.MouseButton1Click:Connect(function()
-    AntiFallDamage = not AntiFallDamage
-    if AntiFallDamage then
-        fallBtn.Text = "Toggle Anti Fall Damage (ON)"
-        fallBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
-    else
-        fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
-        fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
     end
 end)
 
