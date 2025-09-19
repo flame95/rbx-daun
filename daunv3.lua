@@ -1,9 +1,32 @@
--- Gabungan dari Skrip Auto-Summit dan AutoWalk
--- Versi ini tidak memiliki fungsi penghancur anti-cheat.
+-- Gabungan dari Skrip Auto-Summit dan Anti-Cheat Destroyer
+-- Versi ini kembali fokus pada fitur inti dan perlindungan dari anti-cheat.
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
+-- ====================================
+-- ANTI-CHEAT DESTROYER (DITAMBAHKAN)
+-- ====================================
+local function antiCheatDestroyer()
+    for _, v in ipairs(game:GetDescendants()) do
+        if v:IsA("LocalScript") and v.Name:lower():find("anticheat") then
+            warn("[ANTI-AC] Destroyed: " .. v.Name)
+            v:Destroy()
+        end
+    end
+    print("[ANTI-AC] Protection Enabled!")
+end
+
+-- Jalankan setiap beberapa detik untuk perlindungan terus-menerus
+task.spawn(function()
+    while task.wait(5) do
+        antiCheatDestroyer()
+    end
+end)
+
+-- ====================================
+-- AUTO SUMMIT (VERSI ASLI ANDA)
+-- ====================================
 -- cari root part
 local function getRoot()
     local char = player.Character or player.CharacterAdded:Wait()
@@ -94,7 +117,7 @@ local function climbOnce(startIndex)
     print("[AutoClimb] Selesai.")
 end
 
--- loop climb (selesai summit -> ulang Basecamp)
+-- loop climb
 local loopRunning = false
 local function loopClimb()
     loopRunning = true
@@ -110,44 +133,6 @@ local function loopClimb()
     end
 end
 
--- ====================================
--- FITUR BARU: AUTO WALK
--- ====================================
-local AutoWalk = false
-local CheckpointsAutoWalk = {
-    [0] = Vector3.new(-7.21, 13.11, -9.01),
-    [1] = Vector3.new(-621.72, 249.48, -383.89),
-    [2] = Vector3.new(-1203.19, 260.84, -487.08),
-    [3] = Vector3.new(-1399.29, 577.59, -949.93),
-    [4] = Vector3.new(-1701.05, 815.79, -1399.99),
-}
-
-local function getCurrentCP()
-    local label = player:WaitForChild("PlayerGui")
-        :WaitForChild("CheckpointHUD")
-        .CheckpointContainer.CheckpointLabel
-    local text = label.Text
-    local num = text:match(">(%d+)<")
-    return tonumber(num) or 0
-end
-
-task.spawn(function()
-    while task.wait(1) do
-        if AutoWalk then
-            local cp = getCurrentCP()
-            local target = CheckpointsAutoWalk[cp + 1]
-            if target then
-                local root = getRoot()
-                if root then
-                    root.CFrame = CFrame.new(target + Vector3.new(0, 5, 0))
-                end
-            else
-                AutoWalk = false
-            end
-        end
-    end
-end)
-
 -- === GUI ===
 local gui = Instance.new("ScreenGui")
 gui.Name = "AutoSummitMenu"
@@ -155,7 +140,7 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 220, 0, 175)
+frame.Size = UDim2.new(0, 220, 0, 140)
 frame.Position = UDim2.new(0, 20, 0, 120)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BackgroundTransparency = 0.2
@@ -213,26 +198,6 @@ loopBtn.MouseButton1Click:Connect(function()
         loopBtn.Text = "Stop Loop Climb"
         loopBtn.BackgroundColor3 = Color3.fromRGB(160,40,40)
         spawn(loopClimb)
-    end
-end)
-
--- tombol AutoWalk
-local walkBtn = Instance.new("TextButton", frame)
-walkBtn.Size = UDim2.new(1, -20, 0, 30)
-walkBtn.Position = UDim2.new(0, 10, 0, 145)
-walkBtn.Text = "Toggle AutoWalk (OFF)"
-walkBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
-walkBtn.TextColor3 = Color3.new(1,1,1)
-walkBtn.Font = Enum.Font.SourceSansBold
-walkBtn.TextSize = 16
-walkBtn.MouseButton1Click:Connect(function()
-    AutoWalk = not AutoWalk
-    if AutoWalk then
-        walkBtn.Text = "Toggle AutoWalk (ON)"
-        walkBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
-    else
-        walkBtn.Text = "Toggle AutoWalk (OFF)"
-        walkBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
     end
 end)
 
