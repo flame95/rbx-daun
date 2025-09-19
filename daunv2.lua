@@ -197,19 +197,23 @@ local WalkSpeed = 32
 
 task.spawn(function()
     while task.wait(0.5) do
-        if SpeedHack then
-            local char = player.Character
-            if char and char:FindFirstChild("Humanoid") then
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            if SpeedHack then
                 char.Humanoid.WalkSpeed = WalkSpeed
+            else
+                -- Mengembalikan kecepatan normal saat SpeedHack dimatikan
+                char.Humanoid.WalkSpeed = 16 
             end
         end
     end
 end)
 
--- ====================================
--- ANTI FALL DAMAGE
--- ====================================
+---
+## ANTI FALL DAMAGE
+---
 local AntiFallDamage = false
+local lastHumanoid = nil
 
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
@@ -218,6 +222,16 @@ player.CharacterAdded:Connect(function(char)
             hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
         end
     end)
+    lastHumanoid = hum
+end)
+
+-- Loop baru untuk memastikan anti-fall damage selalu aktif
+task.spawn(function()
+    while task.wait(0.1) do
+        if AntiFallDamage and lastHumanoid and lastHumanoid.Parent and lastHumanoid.Health > 0 then
+            lastHumanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
+        end
+    end
 end)
 
 -- === GUI ===
