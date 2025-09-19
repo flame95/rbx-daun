@@ -1,20 +1,45 @@
--- Auto Summit + Extra Features GUI (Updated with AutoJump fix, SpeedHack stealth, AntiFall, R6/R15 support)
+-- Gabungan dari Skrip Anti-Cheat dan Auto-Summit
+-- Skrip ini menggabungkan fitur anti-cheat, teleportasi otomatis, dan fitur tambahan lainnya.
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- cari root part (support R6 & R15)
+-- ====================================
+-- ANTI-CHEAT DESTROYER
+-- ====================================
+-- Menghancurkan LocalScript anti-cheat yang ditemukan
+local function antiCheatDestroyer()
+    for _, v in ipairs(game:GetDescendants()) do
+        if v:IsA("LocalScript") and v.Name:lower():find("anticheat") then
+            warn("[ANTI-AC] Destroyed: " .. v.Name)
+            v:Destroy()
+        end
+    end
+    print("[ANTI-AC] Protection Enabled!")
+end
+
+-- Jalankan setiap beberapa detik untuk perlindungan terus-menerus
+task.spawn(function()
+    while task.wait(5) do
+        antiCheatDestroyer()
+    end
+end)
+
+-- ====================================
+-- AUTO SUMMIT & EXTRA FEATURES
+-- ====================================
+-- Cari root part
 local function getRoot()
     local char = player.Character or player.CharacterAdded:Wait()
-    return char:FindFirstChild("HumanoidRootPart") 
-        or char:FindFirstChild("Torso") 
-        or char:FindFirstChild("UpperTorso") 
+    return char:FindFirstChild("HumanoidRootPart")
+        or char:FindFirstChild("Torso")
+        or char:FindFirstChild("UpperTorso")
         or nil
 end
 
--- daftar checkpoint
+-- Daftar checkpoint
 local checkpoints = {
-    {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)}, 
+    {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)},
     {name = "CP 1",     pos = Vector3.new(-621.72, 249.48, -383.89)},
     {name = "CP 2",     pos = Vector3.new(-1203.19, 260.84, -487.08)},
     {name = "CP 3",     pos = Vector3.new(-1399.29, 577.59, -949.93)},
@@ -37,8 +62,8 @@ local function getCheckpointFromUI()
     return 0
 end
 
--- state CP terakhir
-local lastCheckpointIndex = 1 
+-- State CP terakhir
+local lastCheckpointIndex = 1
 
 -- GUI indikator
 local statusLabel
@@ -48,7 +73,7 @@ local function updateStatus()
     end
 end
 
--- teleport
+-- Teleport
 local function teleportTo(vec)
     local root = getRoot()
     if not root then return false end
@@ -58,7 +83,7 @@ local function teleportTo(vec)
     return true
 end
 
--- climb sekali
+-- Climb sekali
 local function climbOnce(startIndex)
     startIndex = startIndex or lastCheckpointIndex
     for i = startIndex, #checkpoints do
@@ -84,7 +109,7 @@ local function climbOnce(startIndex)
             lastCheckpointIndex = i
             player:SetAttribute("LastCP", lastCheckpointIndex)
             updateStatus()
-            task.wait(90) 
+            task.wait(90)
         else
             warn("[AutoClimb] Timeout tunggu CP UI, berhenti climb.")
             break
@@ -93,7 +118,7 @@ local function climbOnce(startIndex)
     print("[AutoClimb] Selesai.")
 end
 
--- loop climb
+-- Loop climb
 local loopRunning = false
 local function loopClimb()
     loopRunning = true
@@ -110,27 +135,28 @@ local function loopClimb()
 end
 
 -- ====================================
--- AUTO JUMP EDGE (fixed, works R6/R15)
+-- AUTO JUMP EDGE
 -- ====================================
 local AutoJump = false
 task.spawn(function()
     while task.wait(0.05) do
         if AutoJump then
             local root = getRoot()
-            local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-            if root and hum and root.Velocity.Y < -15 then
-                hum.Jump = true
+            if root and root.Velocity.Y < -30 then
+                game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+                task.wait(0.02)
+                game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Space, false, game)
             end
         end
     end
 end)
 
 -- ====================================
--- AUTO WALK (dummy example, bisa custom)
+-- AUTO WALK
 -- ====================================
 local AutoWalk = false
 local Checkpoints = {
-    [0] = Vector3.new(0,0,0), 
+    [0] = Vector3.new(0,0,0),
     [1] = Vector3.new(10,5,0),
     [2] = Vector3.new(50,15,0),
     [3] = Vector3.new(120,30,0),
@@ -164,34 +190,32 @@ task.spawn(function()
 end)
 
 -- ====================================
--- SPEEDHACK (stealth via CFrame move)
+-- SPEEDHACK
 -- ====================================
 local SpeedHack = false
-local SpeedMultiplier = 2 
+local WalkSpeed = 32
 
 task.spawn(function()
-    while task.wait(0.05) do
+    while task.wait(0.5) do
         if SpeedHack then
             local char = player.Character
-            local hum = char and char:FindFirstChildOfClass("Humanoid")
-            local root = getRoot()
-            if root and hum and hum.MoveDirection.Magnitude > 0 then
-                root.CFrame = root.CFrame + hum.MoveDirection * SpeedMultiplier
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.WalkSpeed = WalkSpeed
             end
         end
     end
 end)
 
 -- ====================================
--- ANTI FALL DAMAGE (toggle)
+-- ANTI FALL DAMAGE
 -- ====================================
-local AntiFall = false
+local AntiFallDamage = false
 
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
     hum.StateChanged:Connect(function(_, new)
-        if AntiFall and new == Enum.HumanoidStateType.Freefall then
-            hum:ChangeState(Enum.HumanoidStateType.Jumping)
+        if new == Enum.HumanoidStateType.Freefall and AntiFallDamage then
+            hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
         end
     end)
 end)
@@ -203,7 +227,7 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 240, 0, 400)
+frame.Size = UDim2.new(0, 240, 0, 335)
 frame.Position = UDim2.new(0, 20, 0, 120)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BackgroundTransparency = 0.2
@@ -324,25 +348,26 @@ speedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- tombol AntiFall
+-- tombol Anti Fall Damage
 local fallBtn = Instance.new("TextButton", frame)
 fallBtn.Size = UDim2.new(1, -20, 0, 30)
 fallBtn.Position = UDim2.new(0, 10, 0, 255)
-fallBtn.Text = "Toggle AntiFall (OFF)"
+fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
 fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
 fallBtn.TextColor3 = Color3.new(1,1,1)
 fallBtn.Font = Enum.Font.SourceSansBold
 fallBtn.TextSize = 16
 fallBtn.MouseButton1Click:Connect(function()
-    AntiFall = not AntiFall
-    if AntiFall then
-        fallBtn.Text = "Toggle AntiFall (ON)"
+    AntiFallDamage = not AntiFallDamage
+    if AntiFallDamage then
+        fallBtn.Text = "Toggle Anti Fall Damage (ON)"
         fallBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
     else
-        fallBtn.Text = "Toggle AntiFall (OFF)"
+        fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
         fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
     end
 end)
+
 
 -- === CP UI Watcher ===
 local function setupCheckpointWatcher()
@@ -356,7 +381,7 @@ local function setupCheckpointWatcher()
     end)
 end
 
--- init
+-- Init
 task.spawn(function()
     local cpNum = getCheckpointFromUI()
     lastCheckpointIndex = math.clamp(cpNum + 1, 1, #checkpoints)
