@@ -1,4 +1,5 @@
 -- Gabungan dari Skrip Auto-Summit dan Anti-Cheat Destroyer (LEBIH EFISIEN)
+-- DITAMBAHKAN: Fitur Speedhack
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -133,14 +134,35 @@ local function loopClimb()
     end
 end
 
--- === GUI ===
+-- ====================================
+-- FITUR BARU: SPEEDHACK
+-- ====================================
+local SpeedHack = false
+local WalkSpeed = 32
+
+task.spawn(function()
+    while task.wait(0.5) do
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            if SpeedHack then
+                char.Humanoid.WalkSpeed = WalkSpeed
+            else
+                char.Humanoid.WalkSpeed = 16
+            end
+        end
+    end
+end)
+
+-- ====================================
+-- GUI
+-- ====================================
 local gui = Instance.new("ScreenGui")
 gui.Name = "AutoSummitMenu"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 220, 0, 140)
+frame.Size = UDim2.new(0, 220, 0, 175)
 frame.Position = UDim2.new(0, 20, 0, 120)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BackgroundTransparency = 0.2
@@ -198,6 +220,26 @@ loopBtn.MouseButton1Click:Connect(function()
         loopBtn.Text = "Stop Loop Climb"
         loopBtn.BackgroundColor3 = Color3.fromRGB(160,40,40)
         spawn(loopClimb)
+    end
+end)
+
+-- tombol SpeedHack
+local speedBtn = Instance.new("TextButton", frame)
+speedBtn.Size = UDim2.new(1, -20, 0, 30)
+speedBtn.Position = UDim2.new(0, 10, 0, 145)
+speedBtn.Text = "Toggle SpeedHack (OFF)"
+speedBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+speedBtn.TextColor3 = Color3.new(1,1,1)
+speedBtn.Font = Enum.Font.SourceSansBold
+speedBtn.TextSize = 16
+speedBtn.MouseButton1Click:Connect(function()
+    SpeedHack = not SpeedHack
+    if SpeedHack then
+        speedBtn.Text = "Toggle SpeedHack (ON)"
+        speedBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
+    else
+        speedBtn.Text = "Toggle SpeedHack (OFF)"
+        speedBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
     end
 end)
 
