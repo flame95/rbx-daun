@@ -1,5 +1,4 @@
--- Auto Summit (One-Time & Looping) dengan integrasi Checkpoint UI
--- Fixed & Updated by ChatGPT
+-- Auto Summit + Extra Features GUI (Fixed & Updated)
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -13,8 +12,7 @@ local function getRoot()
         or nil
 end
 
--- daftar checkpoint (urut sesuai CP in-game)
--- index 1 = Basecamp, index 2 = CP1, dst.
+-- daftar checkpoint
 local checkpoints = {
     {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)}, 
     {name = "CP 1",     pos = Vector3.new(-621.72, 249.48, -383.89)},
@@ -32,14 +30,14 @@ local function getCheckpointFromUI()
         :WaitForChild("CheckpointLabel")
 
     if label and label:IsA("TextLabel") then
-        local plainText = label.Text:gsub("<.->", "") -- hapus <font>
+        local plainText = label.Text:gsub("<.->", "")
         local cpNum = tonumber(plainText:match("(%d+)"))
-        return cpNum or 0 -- 0 = Basecamp
+        return cpNum or 0
     end
     return 0
 end
 
--- state CP terakhir (default Basecamp)
+-- state CP terakhir
 local lastCheckpointIndex = 1 
 
 -- GUI indikator
@@ -50,7 +48,7 @@ local function updateStatus()
     end
 end
 
--- teleport instant
+-- teleport
 local function teleportTo(vec)
     local root = getRoot()
     if not root then return false end
@@ -60,7 +58,7 @@ local function teleportTo(vec)
     return true
 end
 
--- climb sekali dari CP terakhir
+-- climb sekali
 local function climbOnce(startIndex)
     startIndex = startIndex or lastCheckpointIndex
     for i = startIndex, #checkpoints do
@@ -68,12 +66,11 @@ local function climbOnce(startIndex)
         teleportTo(cp.pos)
         print("[AutoClimb] Teleport ke " .. cp.name)
 
-        -- tunggu sampai UI checkpoint update
         local success = false
         local startTime = tick()
-        local targetUI = i - 1 -- Basecamp=0, CP1=1 → table index = UI+1
+        local targetUI = i - 1
 
-        while tick() - startTime < 10 do -- max 90 detik
+        while tick() - startTime < 10 do
             local cpNum = getCheckpointFromUI()
             if cpNum == targetUI then
                 success = true
@@ -87,8 +84,6 @@ local function climbOnce(startIndex)
             lastCheckpointIndex = i
             player:SetAttribute("LastCP", lastCheckpointIndex)
             updateStatus()
-
-            -- tambahan delay agar chunk sempat render
             task.wait(90) 
         else
             warn("[AutoClimb] Timeout tunggu CP UI, berhenti climb.")
@@ -98,7 +93,7 @@ local function climbOnce(startIndex)
     print("[AutoClimb] Selesai.")
 end
 
--- loop climb (selesai summit -> ulang Basecamp)
+-- loop climb
 local loopRunning = false
 local function loopClimb()
     loopRunning = true
@@ -119,10 +114,10 @@ end
 -- ====================================
 local AutoJump = false
 task.spawn(function()
-    while task.wait(0.05) do -- delay terendah aman
+    while task.wait(0.05) do
         if AutoJump then
             local root = getRoot()
-            if root and root.Velocity.Y < -30 then -- jatuh cepat
+            if root and root.Velocity.Y < -30 then
                 game:GetService("VirtualInputManager"):SendKeyEvent(true, "Space", false, game)
                 task.wait(0.02)
                 game:GetService("VirtualInputManager"):SendKeyEvent(false, "Space", false, game)
@@ -132,18 +127,17 @@ task.spawn(function()
 end)
 
 -- ====================================
--- AUTO WALK (basecamp → cp → summit)
+-- AUTO WALK
 -- ====================================
 local AutoWalk = false
-local Checkpoints = { -- isi dengan posisi cp
-    [0] = Vector3.new(-621.72, 249.48, -383.89), -- basecamp
-    [1] = Vector3.new(-1203.19, 260.84, -487.08),
-    [2] = Vector3.new(-1399.29, 577.59, -949.93),
-    [3] = Vector3.new(-1701.05, 815.79, -1399.99),
-    [4] = Vector3.new(-3234.00, 1713.83, -2584.00), -- summit
+local Checkpoints = {
+    [0] = Vector3.new(0,0,0), 
+    [1] = Vector3.new(10,5,0),
+    [2] = Vector3.new(50,15,0),
+    [3] = Vector3.new(120,30,0),
+    [4] = Vector3.new(200,60,0),
 }
 
--- baca CP dari UI game
 local function getCurrentCP()
     local label = player:WaitForChild("PlayerGui")
         :WaitForChild("CheckpointHUD")
@@ -161,10 +155,10 @@ task.spawn(function()
             if target then
                 local root = getRoot()
                 if root then
-                    root.CFrame = CFrame.new(target + Vector3.new(0, 5, 0)) -- sedikit offset biar aman
+                    root.CFrame = CFrame.new(target + Vector3.new(0, 5, 0))
                 end
             else
-                AutoWalk = false -- sudah summit
+                AutoWalk = false
             end
         end
     end
@@ -174,13 +168,13 @@ end)
 -- SPEEDHACK + ANTI FALL DAMAGE
 -- ====================================
 local SpeedHack = false
-local WalkSpeed = 32 -- default lebih cepat
+local WalkSpeed = 32 
 
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
     hum.StateChanged:Connect(function(_, new)
         if new == Enum.HumanoidStateType.Freefall and SpeedHack then
-            hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false) -- proteksi anti jatuh
+            hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
         end
     end)
 end)
@@ -203,7 +197,7 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 220, 0, 200)
+frame.Size = UDim2.new(0, 240, 0, 300)
 frame.Position = UDim2.new(0, 20, 0, 120)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BackgroundTransparency = 0.2
@@ -212,7 +206,7 @@ frame.BorderSizePixel = 0
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundTransparency = 1
-title.Text = "Auto Summit"
+title.Text = "Auto Summit Menu"
 title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 18
@@ -336,7 +330,7 @@ local function setupCheckpointWatcher()
     end)
 end
 
--- inisialisasi saat pertama join
+-- init
 task.spawn(function()
     local cpNum = getCheckpointFromUI()
     lastCheckpointIndex = math.clamp(cpNum + 1, 1, #checkpoints)
@@ -345,7 +339,6 @@ task.spawn(function()
     setupCheckpointWatcher()
 end)
 
--- resume saat respawn
 player.CharacterAdded:Connect(function()
     task.wait(1)
     local cpNum = getCheckpointFromUI()
@@ -353,4 +346,3 @@ player.CharacterAdded:Connect(function()
     updateStatus()
     print("[AutoClimb] Respawn, lanjut dari " .. checkpoints[lastCheckpointIndex].name)
 end)
-
