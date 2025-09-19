@@ -1,5 +1,5 @@
--- Gabungan dari Skrip Auto-Summit dan Anti-Cheat Destroyer (LEBIH EFISIEN)
--- DITAMBAHKAN: Fitur Speedhack
+-- Gabungan dari Skrip Auto-Summit, Anti-Cheat, dan Speedhack
+-- DITAMBAHKAN: Fitur Anti Fall Damage
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -7,7 +7,6 @@ local player = Players.LocalPlayer
 -- ====================================
 -- ANTI-CHEAT DESTROYER (VERSI TERBAIK)
 -- ====================================
--- Fungsi untuk menghancurkan LocalScript anti-cheat
 local function destroyIfAnticheat(instance)
     if instance and instance:IsA("LocalScript") and instance.Name:lower():find("anticheat") then
         warn("[ANTI-AC] Destroyed: " .. instance.Name)
@@ -15,12 +14,10 @@ local function destroyIfAnticheat(instance)
     end
 end
 
--- 1. Scan awal untuk menghancurkan skrip yang sudah ada
 for _, descendant in ipairs(game:GetDescendants()) do
     destroyIfAnticheat(descendant)
 end
 
--- 2. Dengarkan setiap skrip baru yang ditambahkan, dan hancurkan secara instan
 game.DescendantAdded:Connect(destroyIfAnticheat)
 
 print("[ANTI-AC] Protection Enabled! (Event-Driven)")
@@ -28,7 +25,6 @@ print("[ANTI-AC] Protection Enabled! (Event-Driven)")
 -- ====================================
 -- AUTO SUMMIT (VERSI ASLI ANDA)
 -- ====================================
--- cari root part
 local function getRoot()
     local char = player.Character or player.CharacterAdded:Wait()
     return char:FindFirstChild("HumanoidRootPart")
@@ -36,8 +32,6 @@ local function getRoot()
         or char:FindFirstChild("UpperTorso")
 end
 
--- daftar checkpoint (urut sesuai CP in-game)
--- index 1 = Basecamp, index 2 = CP1, dst.
 local checkpoints = {
     {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)},
     {name = "CP 1",     pos = Vector3.new(-621.72, 249.48, -383.89)},
@@ -47,7 +41,6 @@ local checkpoints = {
     {name = "Summit",   pos = Vector3.new(-3234.00, 1713.83, -2584.00)},
 }
 
--- === CP UI Integration ===
 local function getCheckpointFromUI()
     local label = player:WaitForChild("PlayerGui")
         :WaitForChild("CheckpointHUD")
@@ -62,10 +55,7 @@ local function getCheckpointFromUI()
     return 0
 end
 
--- state CP terakhir
 local lastCheckpointIndex = 1
-
--- GUI indikator
 local statusLabel
 local function updateStatus()
     if statusLabel then
@@ -73,7 +63,6 @@ local function updateStatus()
     end
 end
 
--- teleport instant
 local function teleportTo(vec)
     local root = getRoot()
     if not root then return false end
@@ -83,7 +72,6 @@ local function teleportTo(vec)
     return true
 end
 
--- climb sekali dari CP terakhir
 local function climbOnce(startIndex)
     startIndex = startIndex or lastCheckpointIndex
     for i = startIndex, #checkpoints do
@@ -118,7 +106,6 @@ local function climbOnce(startIndex)
     print("[AutoClimb] Selesai.")
 end
 
--- loop climb
 local loopRunning = false
 local function loopClimb()
     loopRunning = true
@@ -135,7 +122,7 @@ local function loopClimb()
 end
 
 -- ====================================
--- FITUR BARU: SPEEDHACK
+-- FITUR SPEEDHACK
 -- ====================================
 local SpeedHack = false
 local WalkSpeed = 32
@@ -149,6 +136,30 @@ task.spawn(function()
             else
                 char.Humanoid.WalkSpeed = 16
             end
+        end
+    end
+end)
+
+---
+## FITUR BARU: ANTI FALL DAMAGE
+---
+local AntiFallDamage = false
+local lastHumanoid = nil
+
+player.CharacterAdded:Connect(function(char)
+    local hum = char:WaitForChild("Humanoid")
+    lastHumanoid = hum
+    hum.StateChanged:Connect(function(_, new)
+        if new == Enum.HumanoidStateType.Freefall and AntiFallDamage then
+            hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
+        end
+    end)
+end)
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if AntiFallDamage and lastHumanoid and lastHumanoid.Parent and lastHumanoid.Health > 0 then
+            lastHumanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
         end
     end
 end)
@@ -240,6 +251,26 @@ speedBtn.MouseButton1Click:Connect(function()
     else
         speedBtn.Text = "Toggle SpeedHack (OFF)"
         speedBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+    end
+end)
+
+-- tombol Anti Fall Damage
+local fallBtn = Instance.new("TextButton", frame)
+fallBtn.Size = UDim2.new(1, -20, 0, 30)
+fallBtn.Position = UDim2.new(0, 10, 0, 180)
+fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
+fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
+fallBtn.TextColor3 = Color3.new(1,1,1)
+fallBtn.Font = Enum.Font.SourceSansBold
+fallBtn.TextSize = 16
+fallBtn.MouseButton1Click:Connect(function()
+    AntiFallDamage = not AntiFallDamage
+    if AntiFallDamage then
+        fallBtn.Text = "Toggle Anti Fall Damage (ON)"
+        fallBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
+    else
+        fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
+        fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
     end
 end)
 
