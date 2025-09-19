@@ -5,27 +5,6 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 -- ====================================
--- ANTI-CHEAT DESTROYER
--- ====================================
--- Menghancurkan LocalScript anti-cheat yang ditemukan
-local function antiCheatDestroyer()
-    for _, v in ipairs(game:GetDescendants()) do
-        if v:IsA("LocalScript") and v.Name:lower():find("anticheat") then
-            warn("[ANTI-AC] Destroyed: " .. v.Name)
-            v:Destroy()
-        end
-    end
-    print("[ANTI-AC] Protection Enabled!")
-end
-
--- Jalankan setiap beberapa detik untuk perlindungan terus-menerus
-task.spawn(function()
-    while task.wait(5) do
-        antiCheatDestroyer()
-    end
-end)
-
--- ====================================
 -- AUTO SUMMIT & EXTRA FEATURES
 -- ====================================
 -- Cari root part
