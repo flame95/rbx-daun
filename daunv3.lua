@@ -1,24 +1,20 @@
--- Gabungan dari Skrip Auto-Summit dan Fitur Lainnya
--- Versi ini tidak memiliki fungsi penghancur anti-cheat.
+-- Auto Summit + Extra Features GUI (Updated with AutoJump fix, SpeedHack stealth, AntiFall, R6/R15 support)
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- ====================================
--- AUTO SUMMIT & EXTRA FEATURES
--- ====================================
--- Cari root part
+-- cari root part (support R6 & R15)
 local function getRoot()
     local char = player.Character or player.CharacterAdded:Wait()
-    return char:FindFirstChild("HumanoidRootPart")
-        or char:FindFirstChild("Torso")
-        or char:FindFirstChild("UpperTorso")
+    return char:FindFirstChild("HumanoidRootPart") 
+        or char:FindFirstChild("Torso") 
+        or char:FindFirstChild("UpperTorso") 
         or nil
 end
 
--- Daftar checkpoint
+-- daftar checkpoint
 local checkpoints = {
-    {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)},
+    {name = "Basecamp", pos = Vector3.new(-7.21, 13.11, -9.01)}, 
     {name = "CP 1",     pos = Vector3.new(-621.72, 249.48, -383.89)},
     {name = "CP 2",     pos = Vector3.new(-1203.19, 260.84, -487.08)},
     {name = "CP 3",     pos = Vector3.new(-1399.29, 577.59, -949.93)},
@@ -41,8 +37,8 @@ local function getCheckpointFromUI()
     return 0
 end
 
--- State CP terakhir
-local lastCheckpointIndex = 1
+-- state CP terakhir
+local lastCheckpointIndex = 1 
 
 -- GUI indikator
 local statusLabel
@@ -52,7 +48,7 @@ local function updateStatus()
     end
 end
 
--- Teleport
+-- teleport
 local function teleportTo(vec)
     local root = getRoot()
     if not root then return false end
@@ -62,7 +58,7 @@ local function teleportTo(vec)
     return true
 end
 
--- Climb sekali
+-- climb sekali
 local function climbOnce(startIndex)
     startIndex = startIndex or lastCheckpointIndex
     for i = startIndex, #checkpoints do
@@ -88,7 +84,7 @@ local function climbOnce(startIndex)
             lastCheckpointIndex = i
             player:SetAttribute("LastCP", lastCheckpointIndex)
             updateStatus()
-            task.wait(90)
+            task.wait(90) 
         else
             warn("[AutoClimb] Timeout tunggu CP UI, berhenti climb.")
             break
@@ -97,7 +93,7 @@ local function climbOnce(startIndex)
     print("[AutoClimb] Selesai.")
 end
 
--- Loop climb
+-- loop climb
 local loopRunning = false
 local function loopClimb()
     loopRunning = true
@@ -114,28 +110,27 @@ local function loopClimb()
 end
 
 -- ====================================
--- AUTO JUMP EDGE
+-- AUTO JUMP EDGE (fixed, works R6/R15)
 -- ====================================
 local AutoJump = false
 task.spawn(function()
     while task.wait(0.05) do
         if AutoJump then
             local root = getRoot()
-            if root and root.Velocity.Y < -30 then
-                game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-                task.wait(0.02)
-                game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+            local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+            if root and hum and root.Velocity.Y < -15 then
+                hum.Jump = true
             end
         end
     end
 end)
 
 -- ====================================
--- AUTO WALK
+-- AUTO WALK (dummy example, bisa custom)
 -- ====================================
 local AutoWalk = false
 local Checkpoints = {
-    [0] = Vector3.new(0,0,0),
+    [0] = Vector3.new(0,0,0), 
     [1] = Vector3.new(10,5,0),
     [2] = Vector3.new(50,15,0),
     [3] = Vector3.new(120,30,0),
@@ -169,46 +164,36 @@ task.spawn(function()
 end)
 
 -- ====================================
--- SPEEDHACK
+-- SPEEDHACK (stealth via CFrame move)
 -- ====================================
 local SpeedHack = false
-local WalkSpeed = 32
+local SpeedMultiplier = 2 
 
 task.spawn(function()
-    while task.wait(0.5) do
-        local char = player.Character
-        if char and char:FindFirstChild("Humanoid") then
-            if SpeedHack then
-                char.Humanoid.WalkSpeed = WalkSpeed
-            else
-                char.Humanoid.WalkSpeed = 16
+    while task.wait(0.05) do
+        if SpeedHack then
+            local char = player.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            local root = getRoot()
+            if root and hum and hum.MoveDirection.Magnitude > 0 then
+                root.CFrame = root.CFrame + hum.MoveDirection * SpeedMultiplier
             end
         end
     end
 end)
 
----
-## ANTI FALL DAMAGE
----
-local AntiFallDamage = false
-local lastHumanoid = nil
+-- ====================================
+-- ANTI FALL DAMAGE (toggle)
+-- ====================================
+local AntiFall = false
 
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
-    lastHumanoid = hum
     hum.StateChanged:Connect(function(_, new)
-        if new == Enum.HumanoidStateType.Freefall and AntiFallDamage then
-            hum:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
+        if AntiFall and new == Enum.HumanoidStateType.Freefall then
+            hum:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end)
-end)
-
-task.spawn(function()
-    while task.wait(0.1) do
-        if AntiFallDamage and lastHumanoid and lastHumanoid.Parent and lastHumanoid.Health > 0 then
-            lastHumanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
-        end
-    end
 end)
 
 -- === GUI ===
@@ -218,7 +203,7 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 240, 0, 335)
+frame.Size = UDim2.new(0, 240, 0, 400)
 frame.Position = UDim2.new(0, 20, 0, 120)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BackgroundTransparency = 0.2
@@ -239,7 +224,7 @@ statusLabel.Position = UDim2.new(0, 10, 0, 35)
 statusLabel.BackgroundTransparency = 1
 statusLabel.TextColor3 = Color3.fromRGB(255,255,0)
 statusLabel.Font = Enum.Font.SourceSansBold
-title.TextSize = 16
+statusLabel.TextSize = 16
 updateStatus()
 
 -- tombol Auto Summit (1x)
@@ -339,22 +324,22 @@ speedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- tombol Anti Fall Damage
+-- tombol AntiFall
 local fallBtn = Instance.new("TextButton", frame)
 fallBtn.Size = UDim2.new(1, -20, 0, 30)
 fallBtn.Position = UDim2.new(0, 10, 0, 255)
-fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
+fallBtn.Text = "Toggle AntiFall (OFF)"
 fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
 fallBtn.TextColor3 = Color3.new(1,1,1)
 fallBtn.Font = Enum.Font.SourceSansBold
 fallBtn.TextSize = 16
 fallBtn.MouseButton1Click:Connect(function()
-    AntiFallDamage = not AntiFallDamage
-    if AntiFallDamage then
-        fallBtn.Text = "Toggle Anti Fall Damage (ON)"
+    AntiFall = not AntiFall
+    if AntiFall then
+        fallBtn.Text = "Toggle AntiFall (ON)"
         fallBtn.BackgroundColor3 = Color3.fromRGB(0,160,0)
     else
-        fallBtn.Text = "Toggle Anti Fall Damage (OFF)"
+        fallBtn.Text = "Toggle AntiFall (OFF)"
         fallBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 0)
     end
 end)
@@ -371,7 +356,7 @@ local function setupCheckpointWatcher()
     end)
 end
 
--- Init
+-- init
 task.spawn(function()
     local cpNum = getCheckpointFromUI()
     lastCheckpointIndex = math.clamp(cpNum + 1, 1, #checkpoints)
