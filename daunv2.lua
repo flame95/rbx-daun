@@ -156,11 +156,11 @@ end)
 -- ====================================
 local AutoWalk = false
 local Checkpoints = {
-    [0] = Vector3.new(0,0,0),
-    [1] = Vector3.new(10,5,0),
-    [2] = Vector3.new(50,15,0),
-    [3] = Vector3.new(120,30,0),
-    [4] = Vector3.new(200,60,0),
+    [0] = Vector3.new(-7.21, 13.11, -9.01),
+    [1] = Vector3.new(-621.72, 249.48, -383.89),
+    [2] = Vector3.new(-1203.19, 260.84, -487.08),
+    [3] = Vector3.new(-1399.29, 577.59, -949.93),
+    [4] = Vector3.new(-1701.05, 815.79, -1399.99),
 }
 
 local function getCurrentCP()
@@ -239,7 +239,7 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 240, 0, 335)
+frame.Size = UDim2.new(0, 240, 0, 400)
 frame.Position = UDim2.new(0, 20, 0, 120)
 frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BackgroundTransparency = 0.2
