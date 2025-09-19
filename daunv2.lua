@@ -5,25 +5,30 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 -- ====================================
--- ANTI-CHEAT DESTROYER
+-- ANTI-CHEAT DESTROYER (DIPERBAIKI)
 -- ====================================
 -- Menghancurkan LocalScript anti-cheat yang ditemukan
-local function antiCheatDestroyer()
-    for _, v in ipairs(game:GetDescendants()) do
-        if v:IsA("LocalScript") and v.Name:lower():find("anticheat") then
-            warn("[ANTI-AC] Destroyed: " .. v.Name)
-            v:Destroy()
-        end
+local function destroyIfAnticheat(instance)
+    if instance:IsA("LocalScript") and instance.Name:lower():find("anticheat") then
+        warn("[ANTI-AC] Destroyed: " .. instance.Name)
+        instance:Destroy()
     end
-    print("[ANTI-AC] Protection Enabled!")
 end
 
--- Jalankan setiap beberapa detik untuk perlindungan terus-menerus
-task.spawn(function()
-    while task.wait(5) do
-        antiCheatDestroyer()
+-- Jalankan scan awal untuk menghancurkan skrip yang sudah ada
+local function initialScan()
+    for _, v in ipairs(game:GetDescendants()) do
+        destroyIfAnticheat(v)
     end
-end)
+end
+
+-- Dengarkan setiap skrip baru yang ditambahkan
+game.DescendantAdded:Connect(destroyIfAnticheat)
+
+-- Jalankan scan awal untuk perlindungan instan
+initialScan()
+print("[ANTI-AC] Protection Enabled!")
+
 
 -- ====================================
 -- AUTO SUMMIT & EXTRA FEATURES
@@ -260,7 +265,7 @@ statusLabel.Position = UDim2.new(0, 10, 0, 35)
 statusLabel.BackgroundTransparency = 1
 statusLabel.TextColor3 = Color3.fromRGB(255,255,0)
 statusLabel.Font = Enum.Font.SourceSansBold
-statusLabel.TextSize = 16
+title.TextSize = 16
 updateStatus()
 
 -- tombol Auto Summit (1x)
