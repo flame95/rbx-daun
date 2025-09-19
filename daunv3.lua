@@ -1,28 +1,28 @@
--- Gabungan dari Skrip Auto-Summit dan Anti-Cheat Destroyer
--- Versi ini kembali fokus pada fitur inti dan perlindungan dari anti-cheat.
+-- Gabungan dari Skrip Auto-Summit dan Anti-Cheat Destroyer (LEBIH EFISIEN)
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 -- ====================================
--- ANTI-CHEAT DESTROYER (DITAMBAHKAN)
+-- ANTI-CHEAT DESTROYER (VERSI TERBAIK)
 -- ====================================
-local function antiCheatDestroyer()
-    for _, v in ipairs(game:GetDescendants()) do
-        if v:IsA("LocalScript") and v.Name:lower():find("anticheat") then
-            warn("[ANTI-AC] Destroyed: " .. v.Name)
-            v:Destroy()
-        end
+-- Fungsi untuk menghancurkan LocalScript anti-cheat
+local function destroyIfAnticheat(instance)
+    if instance and instance:IsA("LocalScript") and instance.Name:lower():find("anticheat") then
+        warn("[ANTI-AC] Destroyed: " .. instance.Name)
+        instance:Destroy()
     end
-    print("[ANTI-AC] Protection Enabled!")
 end
 
--- Jalankan setiap beberapa detik untuk perlindungan terus-menerus
-task.spawn(function()
-    while task.wait(5) do
-        antiCheatDestroyer()
-    end
-end)
+-- 1. Scan awal untuk menghancurkan skrip yang sudah ada
+for _, descendant in ipairs(game:GetDescendants()) do
+    destroyIfAnticheat(descendant)
+end
+
+-- 2. Dengarkan setiap skrip baru yang ditambahkan, dan hancurkan secara instan
+game.DescendantAdded:Connect(destroyIfAnticheat)
+
+print("[ANTI-AC] Protection Enabled! (Event-Driven)")
 
 -- ====================================
 -- AUTO SUMMIT (VERSI ASLI ANDA)
